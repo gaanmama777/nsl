@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player Auction</title>
+    <style>
+        body {
+            background-color: #1a1a1a; /* Dark background */
+            color: #ffffff; /* White text */
+            font-family: Arial;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #2b2b2b; /* Darker box */
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            width: 500px;
+            margin-right: 20px;
+        }
+        h1 {
+            color: #ffffff;
+        }
+        input, select {
+            padding: 10px;
+            border: 1px solid #ffffff;
+            background-color: #333333;
+            color: #ffffff;
+            border-radius: 5px;
+            width: 150px;
+            margin: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #ffffff;
+            color: #000000;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #cccccc;
+        }
+        #chatBox {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ffffff;
+            border-radius: 5px;
+            height: 150px;
+            overflow-y: scroll;
+            background-color: #333333;
+        }
+        .discord-chat {
+            width: 340px;
+            height: 500px;
+            background-color: #2b2b2b;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Player Auction</h1>
+        <div id="joinSection">
+            <input type="text" id="userName" placeholder="Enter your name">
+            <button onclick="joinAuction()">Join</button>
+        </div>
+        <div id="auctionSection" style="display: none;">
+            <select id="positionFilter">
+                <option value="all">All Positions</option>
+                <option value="ST">ST</option>
+                <option value="RW">RW</option>
+                <option value="LW">LW</option>
+                <option value="CM">CM</option>
+                <option value="CB">CB</option>
+            </select>
+            <button onclick="startAuction()">Start Auction</button>
+            <div id="playerDetails" style="margin-top: 20px;"></div>
+            <div id="chatBox"></div>
+            <input type="number" id="bidInput" placeholder="Enter bid amount">
+            <button onclick="placeBid()">Bid</button>
+        </div>
+    </div>
+    <div class="discord-chat">
+        <iframe src="https://discord.com/widget?id=YOUR_SERVER_ID&theme=dark" width="340" height="500" allowtransparency="true" frameborder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
+    </div>
+
+    <script>
+        const players = [
+            { name: "Kylian Mbappé", rating: 91, position: "ST", club: "PSG", price: 50 },
+            { name: "Erling Haaland", rating: 91, position: "ST", club: "Man City", price: 50 },
+            { name: "Lionel Messi", rating: 91, position: "RW", club: "Inter Miami", price: 50 },
+            { name: "Neymar Jr.", rating: 89, position: "LW", club: "Al-Hilal", price: 50 },
+            { name: "Kevin De Bruyne", rating: 91, position: "CM", club: "Man City", price: 50 },
+            { name: "Virgil van Dijk", rating: 90, position: "CB", club: "Liverpool", price: 50 },
+        ];
+
+        let users = [];
+        let currentPlayer = null;
+        let currentBid = 0;
+        let highestBidder = null;
+
+        function joinAuction() {
+            const userName = document.getElementById("userName").value;
+            if (!userName) {
+                alert("Please enter a name!");
+                return;
+            }
+            const userId = users.length + 1;
+            users.push({ id: userId, name: userName, budget: 1500 });
+            document.getElementById("chatBox").innerHTML += `User ${userId} (${userName}) joined!<br>`;
+            document.getElementById("joinSection").style.display = "none";
+            document.getElementById("auctionSection").style.display = "block";
+        }
+
+        function startAuction() {
+            const positionFilter = document.getElementById("positionFilter").value;
+            let filteredPlayers = positionFilter === "all" ? players : players.filter(p => p.position === positionFilter);
+            if (filteredPlayers.length === 0) {
+                document.getElementById("playerDetails").innerHTML = "No players left!";
+                return;
+            }
+            currentPlayer = filteredPlayers[Math.floor(Math.random() * filteredPlayers.length)];
+            currentBid = currentPlayer.price;
+            highestBidder = null;
+            displayPlayer(currentPlayer);
+            document.getElementById("chatBox").innerHTML += `Auction started for ${currentPlayer.name}! Starting bid: ${currentBid}/-<br>`;
+        }
+
+        function displayPlayer(player) {
+            document.getElementById("playerDetails").innerHTML = `
+                Name: ${player.name}<br>
+                Rating: ${player.rating}<br>
+                Position: ${player.position}<br>
+                Club: ${player.club}<br>
+                Base Price: ${player.price}/-
+            `;
+        }
+
+        function placeBid() {
+            const bidAmount = parseInt(document.getElementById("bidInput").value);
+            const userId = parseInt(prompt("Enter your User ID (e.g., 1, 2):"));
+            const user = users.find(u => u.id === userId);
+
+            if (!user) {
+                alert("Invalid User ID!");
+                return;
+            }
+            if (bidAmount <= currentBid) {
+                alert("Bid must be higher than the current bid!");
+                return;
+            }
+            if (bidAmount > user.budget) {
+                alert("Not enough budget!");
+                return;
+            }
+
+            currentBid = bidAmount;
+            highestBidder = user;
+            document.getElementById("chatBox").innerHTML += `User ${user.id} bid ${currentBid}/- on ${currentPlayer.name}<br>`;
+            document.getElementById("bidInput").value = "";
+        }
+    </script>
+</body>
+</html>
